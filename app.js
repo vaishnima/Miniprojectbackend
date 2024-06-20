@@ -5,6 +5,7 @@ const dbconnection = require("./Configure/dbconnection");
 const app = express();
 const userRoutes = require("./Routes/userRoutes")
 const adminRoutes = require("./Routes/adminRoutes")
+// const path = require("path");
 dbconnection.dbconnect();
 app.use(cors())
 app.use(express.json())
@@ -16,3 +17,4 @@ app.listen(PORT,() => {
 });
 app.use("/",userRoutes)
 app.use("/admin",adminRoutes)
+// app.use("/public", express.static(path.join(__dirname, "public")));
