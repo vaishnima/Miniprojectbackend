@@ -4,9 +4,9 @@ const userModel = require("../Model/userModel");
 module.exports = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
-        console.log(authHeader,"Middleware One");
+        console.log(authHeader,"middleware one");
         const authToken = authHeader && authHeader.split(" ")[1];
-        console.log(authToken,"Middleware Two");
+        console.log(authToken,"middleware two");
         if (!authToken) {
           return res.json({
             loginfail: true,
@@ -16,7 +16,7 @@ module.exports = async (req, res, next) => {
 }
     const decode = jwt.verify(authToken, "JWT");
 
-    const user = await userModel.findOne({ _id: decode.id });
+    const user = await userModel.findOne({_id:decode.userId});
     if (!user) {
         return res.json({
             message: "Unauthorized access",

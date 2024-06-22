@@ -81,7 +81,6 @@ const productSchema=new mongoose.Schema({
     image:String,
     category:String
     
-
 });
 
 const Product= mongoose.model('products',productSchema);
