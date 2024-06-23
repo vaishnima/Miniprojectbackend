@@ -48,7 +48,7 @@ router.get("/shop/:id", productDetails);
 
 // router.get('/wishlist', verifyToken, getWishlist);
 router.get("/wishlist/check/:productId",userAuth, checkWislist);
-router.get("/wishlist",userAuth,  getWishlist);
+router.get("/wishlist",userAuth, getWishlist);
 //DELETE
 router.delete("/wishlist/remove/:productId",userAuth, removeWishlist);
 

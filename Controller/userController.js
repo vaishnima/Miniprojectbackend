@@ -2,10 +2,15 @@ const userModel = require("../Model/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const productModel = require('../Model/productModel');
+const maxAge = 3 * 24 * 60 * 60;
+
+
+
 const createToken = (userId) => {
-    const token = jwt.sign({ userId }, "JWT", { expiresIn: "24h" });
+    const token = jwt.sign({ userId }, "JWT", { expiresIn: maxAge });
     return token;
 };
+
 module.exports.signup = async (req, res, next) => {
     console.log(req.body,"%%%%%%%%%%%%%%%%%%%%%%%");
     const { email, password, username} = req.body;
@@ -22,7 +27,7 @@ module.exports.signup = async (req, res, next) => {
         password: password,
      });
 
-     const userDetails = await newUser.save();
+     const userDetails = await (newUser.save());
      const token = createToken(userDetails._id);
      return res.json({
         message: "Account created successfully",
@@ -277,63 +282,105 @@ module.exports.checkWislist = async (req, res) => {
 
 // Get Wishlist
 
-exports.getWishlist = async (req, res) => {
-  try {
-      const userId = req.userId; 
-      const user = await userModel.findById(userId).populate('wishlist');
-      if (!user) {
-          return res.status(404).json({
-              message: "User not found",
-              status: false,
-          });
-      }
+// exports.getWishlist = async (req, res) => {
+//   try {
+//       const userId = req.userId; 
+//       const user = await userModel.findById(userId).populate('wishlist');
+//       if (!user) {
+//           return res.status(404).json({
+//               message: "User not found",
+//               status: false,
+//           });
+//       }
 
-      res.status(200).json({
-          message: "Wishlist fetched",
-          status: true,
-          wishlist: user.wishlist,
-      });
-  } catch (err) {
-      console.log(err);
-      res.status(500).json({
-          message: "Internal server error",
-          status: false,
-      });
+//       res.status(200).json({
+//           message: "Wishlist fetched",
+//           status: true,
+//           wishlist: user.wishlist,
+//       });
+//   } catch (err) {
+//       console.log(err);
+//       res.status(500).json({
+//           message: "Internal server error",
+//           status: false,
+//       });
+//   }
+// };
+
+module.exports.getWishlist = async (req, res) => {
+  try {
+    const data = await userModel.findById(req.user._id).populate("wishlist");
+
+    res.status(200).json(data.wishlist);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
+
 
 
 
 // Remove from Wishlist
 
 module.exports.removeWishlist = async (req, res) => {
-  try {
-    const userId = req.userId; // Assume userId is obtained from middleware
-    const { productId } = req.body;
+  const userId = req.user._id;
+  const productId = req.params.productId;
 
+  try {
     const user = await userModel.findById(userId);
     if (!user) {
       return res.status(404).json({
         message: "User not found",
-        status: false,
       });
     }
 
-    user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
+    user.wishlist = user.wishlist.filter(
+      (item) => item.toString() !== productId
+    );
     await user.save();
 
     res.status(200).json({
-      message: "Product removed from wishlist",
-      status: true,
+      message: "product removed from wishlist",
     });
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
     res.status(500).json({
       message: "Internal server error",
-      status: false,
+      error,
     });
   }
 };
+
+// module.exports.removeWishlist = async (req, res) => {
+//   try {
+//     const userId = req.userId; 
+//     const { productId } = req.body;
+
+//     const user = await userModel.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({
+//         message: "User not found",
+//         status: false,
+//       });
+//     }
+
+//     user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
+//     await user.save();
+
+//     res.status(200).json({
+//       message: "Product removed from wishlist",
+//       status: true,
+//     });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       message: "Internal server error",
+//       status: false,
+//     });
+//   }
+// };
 
 
 
@@ -345,7 +392,7 @@ module.exports.addToCart = async (req, res) => {
     const userId = req.user._id;
     const { productId, quantity } = req.body;
 
-    const user = await UserModel.findById(userId);
+    const user = await userModel.findById(userId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -386,7 +433,7 @@ module.exports.addToCart = async (req, res) => {
 module.exports.getCart = async (req, res) => {
   try {
     const userId = req.user._id;
-    const user = await UserModel.findById(userId).populate("cart.product");
+    const user = await userModel.findById(userId).populate("cart.product");
 
     if (!user) {
       return res.status(404).json({
@@ -408,7 +455,7 @@ module.exports.removeFromCart = async (req, res) => {
     const userId = req.user._id;
     const { productId } = req.body;
 
-    const user = await UserModel.findById(userId);
+    const user = await userModel.findById(userId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -447,7 +494,7 @@ module.exports.editCart = async (req, res) => {
     const userId = req.user._id;
     const { productId, quantity } = req.body;
 
-    const user = await UserModel.findById(userId);
+    const user = await userModel.findById(userId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
